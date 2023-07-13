@@ -4,6 +4,21 @@ module Api
     before_action :logged_in!
     before_action :validate_score_user_id, only: :destroy
 
+    def show_scores
+      user = User.find_by(id: params[:id])
+      if user
+        scores = user.scores.order(played_at: :desc, id: :desc).includes(:user).map(&:serialize)
+        render json: {
+          scores: scores,
+          name: user.name
+        }
+      else
+        render json: {
+          errors: 'no valid user with this id'
+        }, status: :bad_request
+      end
+    end
+
     def user_feed
       scores = Score.all.limit(25).order(played_at: :desc, id: :desc)
       serialized_scores = scores.map(&:serialize)
